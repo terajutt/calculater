@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<html lang="en" data-bs-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Financial Calculator</title>
+    
+    <!-- Bootstrap CSS from Replit theme -->
+    <link rel="stylesheet" href="https://cdn.replit.com/agent/bootstrap-agent-dark-theme.min.css">
+    
+    <!-- Font Awesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/custom.css') }}">
+</head>
+<body>
+    <div class="container py-4">
+        <header class="text-center mb-5">
+            <h1 class="display-4">Financial Calculator</h1>
+            <p class="lead">Calculate EMI, GST, and perform basic arithmetic operations</p>
+            <a href="{{ url_for('download_page') }}" class="btn btn-success mt-2">
+                <i class="fas fa-download me-2"></i>Download Calculator Files
+            </a>
+        </header>
+
+        <!-- Tab Navigation -->
+        <ul class="nav nav-tabs mb-4" id="calculatorTabs" role="tablist">
+            <li class="nav-item" role="presentation">
+                <button class="nav-link active" id="emi-tab" data-bs-toggle="tab" data-bs-target="#emi" type="button" role="tab" aria-controls="emi" aria-selected="true">
+                    <i class="fas fa-money-bill-wave me-2"></i>EMI Calculator
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="gst-tab" data-bs-toggle="tab" data-bs-target="#gst" type="button" role="tab" aria-controls="gst" aria-selected="false">
+                    <i class="fas fa-receipt me-2"></i>GST Calculator
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="arithmetic-tab" data-bs-toggle="tab" data-bs-target="#arithmetic" type="button" role="tab" aria-controls="arithmetic" aria-selected="false">
+                    <i class="fas fa-calculator me-2"></i>Arithmetic Calculator
+                </button>
+            </li>
+        </ul>
+
+        <!-- Tab Content -->
+        <div class="tab-content" id="calculatorTabsContent">
+            <!-- EMI Calculator Tab -->
+            <div class="tab-pane fade show active" id="emi" role="tabpanel" aria-labelledby="emi-tab">
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="card shadow-sm">
+                            <div class="card-header bg-primary bg-opacity-25">
+                                <h5 class="card-title mb-0">EMI Calculator</h5>
+                            </div>
+                            <div class="card-body">
+                                <form id="emiForm">
+                                    <div class="mb-3">
+                                        <label for="loanAmount" class="form-label">Loan Amount (₹)</label>
+                                        <input type="number" class="form-control" id="loanAmount" min="1000" required placeholder="Enter loan amount">
+                                        <div class="invalid-feedback">Please enter a valid loan amount (minimum ₹1,000)</div>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label for="interestRate" class="form-label">Interest Rate (% per annum)</label>
+                                        <input type="number" class="form-control" id="interestRate" min="0.1" max="50" step="0.1" required placeholder="Enter interest rate">
+                                        <div class="invalid-feedback">Please enter a valid interest rate (0.1% - 50%)</div>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label for="loanTenure" class="form-label">Loan Tenure</label>
+                                        <div class="input-group">
+                                            <input type="number" class="form-control" id="loanTenure" min="1" max="360" required placeholder="Enter loan tenure">
+                                            <select class="form-select" id="tenureType">
+                                                <option value="months">Months</option>
+                                                <option value="years">Years</option>
+                                            </select>
+                                            <div class="invalid-feedback">Please enter a valid loan tenure</div>
+                                        </div>
+                                    </div>
+                                    <div class="d-grid gap-2">
+                                        <button type="submit" class="btn btn-primary">Calculate EMI</button>
+                                        <button type="reset" class="btn btn-outline-secondary">Reset</button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="card shadow-sm">
+                            <div class="card-header bg-success bg-opacity-25">
+                                <h5 class="card-title mb-0">EMI Results</h5>
+                            </div>
+                            <div class="card-body">
+                                <div id="emiResult" class="d-none">
+                                    <div class="result-item mb-3">
+                                        <h6>Monthly EMI</h6>
+                                        <p class="result-value" id="monthlyEmi">₹0</p>
+                                    </div>
+                                    <div class="result-item mb-3">
+                                        <h6>Total Interest Payable</h6>
+                                        <p class="result-value" id="totalInterest">₹0</p>
+                                    </div>
+                                    <div class="result-item mb-3">
+                                        <h6>Total Payment (Principal + Interest)</h6>
+                                        <p class="result-value" id="totalPayment">₹0</p>
+                                    </div>
+                                    
+                                    <div class="breakdown mt-4">
+                                        <h6>Payment Breakdown</h6>
+                                        <div class="progress mb-2" style="height: 20px;">
+                                            <div class="progress-bar" id="principalPercentage" role="progressbar" style="width: 50%;" aria-valuenow="50" aria-valuemin="0" aria-valuemax="100">Principal</div>
+                                            <div class="progress-bar bg-warning" id="interestPercentage" role="progressbar" style="width: 50%;" aria-valuenow="50" aria-valuemin="0" aria-valuemax="100">Interest</div>
+                                        </div>
+                                        <div class="d-flex justify-content-between small">
+                                            <span id="principalText">Principal: 50%</span>
+                                            <span id="interestText">Interest: 50%</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div id="emiPlaceholder" class="text-center p-4">
+                                    <i class="fas fa-money-bill-wave fa-3x text-muted mb-3"></i>
+                                    <p class="mb-0">Fill the form to calculate your EMI</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- GST Calculator Tab -->
+            <div class="tab-pane fade" id="gst" role="tabpanel" aria-labelledby="gst-tab">
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="card shadow-sm">
+                            <div class="card-header bg-primary bg-opacity-25">
+                                <h5 class="card-title mb-0">GST Calculator</h5>
+                            </div>
+                            <div class="card-body">
+                                <form id="gstForm">
+                                    <div class="mb-3">
+                                        <h6>Calculation Type</h6>
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="radio" name="gstCalculationType" id="addGst" value="add" checked>
+                                            <label class="form-check-label" for="addGst">
+                                                Add GST (Calculate Tax on Amount)
+                                            </label>
+                                        </div>
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="radio" name="gstCalculationType" id="removeGst" value="remove">
+                                            <label class="form-check-label" for="removeGst">
+                                                Remove GST (Extract Tax from Amount)
+                                            </label>
+                                        </div>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label for="amount" class="form-label">Amount (₹)</label>
+                                        <input type="number" class="form-control" id="amount" min="0" step="0.01" required placeholder="Enter amount">
+                                        <div class="invalid-feedback">Please enter a valid amount</div>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label for="gstRate" class="form-label">GST Rate (%)</label>
+                                        <select class="form-select" id="gstRate" required>
+                                            <option value="">Select GST Rate</option>
+                                            <option value="3">3% (CGST 1.5% + SGST 1.5%)</option>
+                                            <option value="5">5% (CGST 2.5% + SGST 2.5%)</option>
+                                            <option value="12">12% (CGST 6% + SGST 6%)</option>
+                                            <option value="18">18% (CGST 9% + SGST 9%)</option>
+                                            <option value="28">28% (CGST 14% + SGST 14%)</option>
+                                        </select>
+                                        <div class="invalid-feedback">Please select a GST rate</div>
+                                    </div>
+                                    <div class="d-grid gap-2">
+                                        <button type="submit" class="btn btn-primary">Calculate GST</button>
+                                        <button type="reset" class="btn btn-outline-secondary">Reset</button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="card shadow-sm">
+                            <div class="card-header bg-success bg-opacity-25">
+                                <h5 class="card-title mb-0">GST Results</h5>
+                            </div>
+                            <div class="card-body">
+                                <div id="gstResult" class="d-none">
+                                    <div class="result-item mb-3">
+                                        <h6 id="baseAmountLabel">Base Amount</h6>
+                                        <p class="result-value" id="baseAmount">₹0</p>
+                                    </div>
+                                    <div class="result-item mb-3">
+                                        <h6>CGST Amount</h6>
+                                        <p class="result-value" id="cgstAmount">₹0</p>
+                                    </div>
+                                    <div class="result-item mb-3">
+                                        <h6>SGST Amount</h6>
+                                        <p class="result-value" id="sgstAmount">₹0</p>
+                                    </div>
+                                    <div class="result-item mb-3">
+                                        <h6>Total GST</h6>
+                                        <p class="result-value" id="totalGst">₹0</p>
+                                    </div>
+                                    <div class="result-item mb-3">
+                                        <h6 id="finalAmountLabel">Final Amount (Including GST)</h6>
+                                        <p class="result-value" id="finalAmount">₹0</p>
+                                    </div>
+                                    <div class="breakdown mt-4">
+                                        <h6>Payment Breakdown</h6>
+                                        <div class="progress mb-2" style="height: 20px;">
+                                            <div class="progress-bar" id="basePercentage" role="progressbar" style="width: 80%;" aria-valuenow="80" aria-valuemin="0" aria-valuemax="100">Base Amount</div>
+                                            <div class="progress-bar bg-warning" id="gstPercentage" role="progressbar" style="width: 20%;" aria-valuenow="20" aria-valuemin="0" aria-valuemax="100">GST</div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div id="gstPlaceholder" class="text-center p-4">
+                                    <i class="fas fa-receipt fa-3x text-muted mb-3"></i>
+                                    <p class="mb-0">Fill the form to calculate GST</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Arithmetic Calculator Tab -->
+            <div class="tab-pane fade" id="arithmetic" role="tabpanel" aria-labelledby="arithmetic-tab">
+                <div class="row justify-content-center">
+                    <div class="col-md-6">
+                        <div class="card shadow-sm">
+                            <div class="card-header bg-primary bg-opacity-25">
+                                <h5 class="card-title mb-0">Arithmetic Calculator</h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="calculator">
+                                    <div class="mb-3">
+                                        <div class="input-group">
+                                            <input type="text" class="form-control" id="display" readonly>
+                                            <button class="btn btn-outline-secondary" type="button" id="clearBtn">
+                                                <i class="fas fa-backspace"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                    <div class="calculator-keys">
+                                        <div class="row g-2 mb-2">
+                                            <div class="col-3">
+                                                <button type="button" class="btn btn-outline-secondary w-100 calc-btn" value="7">7</button>
+                                            </div>
+                                            <div class="col-3">
+                                                <button type="button" class="btn btn-outline-secondary w-100 calc-btn" value="8">8</button>
+                                            </div>
+                                            <div class="col-3">
+                                                <button type="button" class="btn btn-outline-secondary w-100 calc-btn" value="9">9</button>
+                                            </div>
+                                            <div class="col-3">
+                                                <button type="button" class="btn btn-warning w-100 calc-btn" value="/">÷</button>
+                                            </div>
+                                        </div>
+                                        <div class="row g-2 mb-2">
+                                            <div class="col-3">
+                                                <button type="button" class="btn btn-outline-secondary w-100 calc-btn" value="4">4</button>
+                                            </div>
+                                            <div class="col-3">
+                                                <button type="button" class="btn btn-outline-secondary w-100 calc-btn" value="5">5</button>
+                                            </div>
+                                            <div class="col-3">
+                                                <button type="button" class="btn btn-outline-secondary w-100 calc-btn" value="6">6</button>
+                                            </div>
+                                            <div class="col-3">
+                                                <button type="button" class="btn btn-warning w-100 calc-btn" value="*">×</button>
+                                            </div>
+                                        </div>
+                                        <div class="row g-2 mb-2">
+                                            <div class="col-3">
+                                                <button type="button" class="btn btn-outline-secondary w-100 calc-btn" value="1">1</button>
+                                            </div>
+                                            <div class="col-3">
+                                                <button type="button" class="btn btn-outline-secondary w-100 calc-btn" value="2">2</button>
+                                            </div>
+                                            <div class="col-3">
+                                                <button type="button" class="btn btn-outline-secondary w-100 calc-btn" value="3">3</button>
+                                            </div>
+                                            <div class="col-3">
+                                                <button type="button" class="btn btn-warning w-100 calc-btn" value="-">-</button>
+                                            </div>
+                                        </div>
+                                        <div class="row g-2 mb-2">
+                                            <div class="col-3">
+                                                <button type="button" class="btn btn-outline-secondary w-100 calc-btn" value="0">0</button>
+                                            </div>
+                                            <div class="col-3">
+                                                <button type="button" class="btn btn-outline-secondary w-100 calc-btn" value=".">.</button>
+                                            </div>
+                                            <div class="col-3">
+                                                <button type="button" class="btn btn-success w-100" id="equalsBtn">=</button>
+                                            </div>
+                                            <div class="col-3">
+                                                <button type="button" class="btn btn-warning w-100 calc-btn" value="+">+</button>
+                                            </div>
+                                        </div>
+                                        <div class="row g-2">
+                                            <div class="col-6">
+                                                <button type="button" class="btn btn-danger w-100" id="clearAllBtn">Clear</button>
+                                            </div>
+                                            <div class="col-6">
+                                                <button type="button" class="btn btn-primary w-100" id="calculateBtn">Calculate</button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <footer class="mt-5 text-center text-muted">
+            <p>Financial Calculator &copy; 2023</p>
+        </footer>
+    </div>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <!-- Custom JS -->
+    <script src="{{ url_for('static', filename='js/emi-calculator.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/gst-calculator.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/arithmetic-calculator.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+</body>
+</html>
